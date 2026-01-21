@@ -11,7 +11,7 @@ Signum is a simple, secure, locally hosted credential manager designed to "seal"
 
 ## Features
 
-![Dashboard Screenshot](./docs/screenshot.png)
+![Dashboard Screenshot](./docs/screenshot_1.png)
 
 
 - **The Seal:** Secure Lock Screen requiring a Master Password.
@@ -51,6 +51,26 @@ Signum is a simple, secure, locally hosted credential manager designed to "seal"
 5.  **Setup:**
     - On first launch, you will be asked to create a Master Password.
     - **WARNING:** This password is NOT stored anywhere. If you lose it, you lose access to your vault.
+
+    - **WARNING:** This password is NOT stored anywhere. If you lose it, you lose access to your vault.
+
+## Run on Startup (Windows)
+
+To have Signum start automatically when you log in:
+
+1.  **Build the app** (if you haven't already):
+    ```bash
+    npm run build
+    ```
+2.  **Open the Startup folder:**
+    - Press `Win + R` on your keyboard.
+    - Type `shell:startup` and press Enter.
+3.  **Create a Shortcut:**
+    - Right-click the `start-signum.bat` file in your project folder.
+    - Select **Create shortcut**.
+    - Move this new shortcut into the **Startup** folder you opened in step 2.
+
+Now Signum will launch automatically whenever you start your computer!
 
 ## Building for Production
 
