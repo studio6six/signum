@@ -46,11 +46,14 @@ const credentialSchema = z.object({
     description: z.string().optional(),
 });
 
+import { CredentialDetailView } from "./CredentialDetailView";
+
 export function Dashboard({ credentials: initialCredentials, onLock, masterPassword }: DashboardProps) {
     const [credentials, setCredentials] = useState<Credential[]>(initialCredentials);
     const [search, setSearch] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCredential, setEditingCredential] = useState<Credential | null>(null);
+    const [viewingCredential, setViewingCredential] = useState<Credential | null>(null);
 
     const form = useForm<z.infer<typeof credentialSchema>>({
         resolver: zodResolver(credentialSchema),
@@ -83,7 +86,8 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
         }
     };
 
-    const navToEdit = (cred: Credential) => {
+    const navToEdit = (e: React.MouseEvent, cred: Credential) => {
+        e.stopPropagation(); // Prevent opening detail view
         setEditingCredential(cred);
         form.reset({
             title: cred.title,
@@ -93,6 +97,11 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
             description: cred.description || "",
         });
         setIsDialogOpen(true);
+    };
+
+    const handleDelete = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Prevent opening detail view
+        onDelete(id);
     };
 
     async function onSubmit(values: z.infer<typeof credentialSchema>) {
@@ -143,6 +152,9 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
             if (result.success) {
                 setCredentials(newCredentials);
                 toast.success("Credential deleted.");
+                if (viewingCredential?.id === id) {
+                    setViewingCredential(null);
+                }
             } else {
                 toast.error(result.error || "Failed to delete.");
             }
@@ -151,7 +163,8 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
         }
     }
 
-    const copyToClipboard = (text: string) => {
+    const copyToClipboard = (e: React.MouseEvent, text: string) => {
+        e.stopPropagation();
         navigator.clipboard.writeText(text);
         toast.success("Copied to clipboard");
     };
@@ -271,7 +284,11 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {filteredCredentials.map((cred) => (
-                        <div key={cred.id} className="group relative rounded-lg border bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                        <div
+                            key={cred.id}
+                            className="group relative rounded-lg border bg-white p-6 shadow-sm transition-all hover:shadow-md cursor-pointer hover:border-primary/50"
+                            onClick={() => setViewingCredential(cred)}
+                        >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="space-y-1">
                                     <h3 className="font-semibold text-lg leading-none">{cred.title}</h3>
@@ -288,7 +305,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-gray-500 hover:text-gray-900"
-                                    onClick={() => copyToClipboard(cred.password || "")}
+                                    onClick={(e) => copyToClipboard(e, cred.password || "")}
                                     title="Copy Password"
                                 >
                                     <Copy className="h-4 w-4" />
@@ -297,7 +314,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                                    onClick={() => navToEdit(cred)}
+                                    onClick={(e) => navToEdit(e, cred)}
                                     title="Edit"
                                 >
                                     <Pencil className="h-4 w-4" />
@@ -306,7 +323,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                    onClick={() => onDelete(cred.id)}
+                                    onClick={(e) => handleDelete(e, cred.id)}
                                     title="Delete"
                                 >
                                     <Trash2 className="h-4 w-4" />
@@ -321,6 +338,13 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                     )}
                 </div>
             </div>
+
+            {viewingCredential && (
+                <CredentialDetailView
+                    credential={viewingCredential}
+                    onClose={() => setViewingCredential(null)}
+                />
+            )}
         </div>
     );
 }
