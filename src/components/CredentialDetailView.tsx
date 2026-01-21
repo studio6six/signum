@@ -1,13 +1,13 @@
 "use client";
 
 import Draggable from "react-draggable";
-import { X, Copy, Calendar, Tag } from "lucide-react";
+import { Copy, X, Calendar, Eye, EyeOff } from "lucide-react";
 import { Credential } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 interface CredentialDetailViewProps {
     credential: Credential;
@@ -16,6 +16,7 @@ interface CredentialDetailViewProps {
 
 export function CredentialDetailView({ credential, onClose }: CredentialDetailViewProps) {
     const nodeRef = useRef(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -51,15 +52,29 @@ export function CredentialDetailView({ credential, onClose }: CredentialDetailVi
                                 Password
                             </label>
                             <div className="flex items-center justify-between rounded-md border bg-transparent px-3 py-1 shadow-sm">
-                                <code className="text-sm">•••••••••••••••</code>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                    onClick={() => copyToClipboard(credential.password || "", "Password")}
-                                >
-                                    <Copy className="h-3 w-3" />
-                                </Button>
+                                <code className="text-sm font-semibold truncate mr-2">
+                                    {showPassword ? credential.password : "•••••••••••••••"}
+                                </code>
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        title={showPassword ? "Hide Password" : "Show Password"}
+                                    >
+                                        {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                        onClick={() => copyToClipboard(credential.password || "", "Password")}
+                                        title="Copy Password"
+                                    >
+                                        <Copy className="h-3 w-3" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
 

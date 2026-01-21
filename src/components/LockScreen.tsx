@@ -91,6 +91,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
                                                 placeholder="Master Password"
                                                 className="text-center"
                                                 autoFocus
+                                                autoComplete="off"
                                                 {...field}
                                             />
                                         </FormControl>

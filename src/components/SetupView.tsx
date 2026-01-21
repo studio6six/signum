@@ -104,7 +104,7 @@ export function SetupView({ onSetupComplete }: SetupViewProps) {
                                     <FormItem>
                                         <FormLabel>Master Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="••••••••" {...field} />
+                                            <Input type="password" placeholder="••••••••" autoComplete="off" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -117,7 +117,7 @@ export function SetupView({ onSetupComplete }: SetupViewProps) {
                                     <FormItem>
                                         <FormLabel>Confirm Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="••••••••" {...field} />
+                                            <Input type="password" placeholder="••••••••" autoComplete="off" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

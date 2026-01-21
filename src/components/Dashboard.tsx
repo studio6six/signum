@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, Search, LogOut, Copy, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, LogOut, Copy, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -30,6 +30,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { CredentialDetailView } from "./CredentialDetailView";
 
 interface DashboardProps {
     credentials: Credential[];
@@ -46,7 +47,6 @@ const credentialSchema = z.object({
     description: z.string().optional(),
 });
 
-import { CredentialDetailView } from "./CredentialDetailView";
 
 export function Dashboard({ credentials: initialCredentials, onLock, masterPassword }: DashboardProps) {
     const [credentials, setCredentials] = useState<Credential[]>(initialCredentials);
@@ -54,6 +54,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCredential, setEditingCredential] = useState<Credential | null>(null);
     const [viewingCredential, setViewingCredential] = useState<Credential | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     const form = useForm<z.infer<typeof credentialSchema>>({
         resolver: zodResolver(credentialSchema),
@@ -76,6 +77,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
         setIsDialogOpen(open);
         if (!open) {
             setEditingCredential(null);
+            setShowPassword(false);
             form.reset({
                 title: "",
                 username: "",
@@ -89,6 +91,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
     const navToEdit = (e: React.MouseEvent, cred: Credential) => {
         e.stopPropagation(); // Prevent opening detail view
         setEditingCredential(cred);
+        setShowPassword(false);
         form.reset({
             title: cred.title,
             username: cred.username,
@@ -241,7 +244,44 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                                             <FormItem>
                                                 <FormLabel>Password</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" {...field} />
+                                                    <div className="relative">
+                                                        <Input
+                                                            type={showPassword ? "text" : "password"}
+                                                            autoComplete="off"
+                                                            className="pr-20"
+                                                            {...field}
+                                                        />
+                                                        <div className="absolute right-0 top-0 flex h-full">
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-full px-3 py-2 hover:bg-transparent"
+                                                                onClick={(e) => copyToClipboard(e, field.value)}
+                                                                tabIndex={-1}
+                                                                title="Copy Password"
+                                                            >
+                                                                <Copy className="h-4 w-4 text-muted-foreground" />
+                                                            </Button>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-full px-3 py-2 hover:bg-transparent"
+                                                                onClick={() => setShowPassword(!showPassword)}
+                                                                tabIndex={-1}
+                                                            >
+                                                                {showPassword ? (
+                                                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                                                ) : (
+                                                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                                                )}
+                                                                <span className="sr-only">
+                                                                    {showPassword ? "Hide password" : "Show password"}
+                                                                </span>
+                                                            </Button>
+                                                        </div>
+                                                    </div>
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
