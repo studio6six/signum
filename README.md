@@ -1,8 +1,18 @@
 # Signum Credential Manager
 
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![NodeJS](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+
+
 Signum is a simple, secure, locally hosted credential manager designed to "seal" and protect your sensitive information. It is built with a "Zero Knowledge" architecture in mind.
 
 ## Features
+
+![Dashboard Screenshot](./docs/screenshot.png)
+
 
 - **The Seal:** Secure Lock Screen requiring a Master Password.
 - **Vault:** AES-256-GCM encrypted JSON storage (`signum-vault.json`).
