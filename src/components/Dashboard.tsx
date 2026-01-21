@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, Search, LogOut, Copy } from "lucide-react";
+import { Plus, Search, LogOut, Copy, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -49,7 +49,8 @@ const credentialSchema = z.object({
 export function Dashboard({ credentials: initialCredentials, onLock, masterPassword }: DashboardProps) {
     const [credentials, setCredentials] = useState<Credential[]>(initialCredentials);
     const [search, setSearch] = useState("");
-    const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingCredential, setEditingCredential] = useState<Credential | null>(null);
 
     const form = useForm<z.infer<typeof credentialSchema>>({
         resolver: zodResolver(credentialSchema),
@@ -67,28 +68,83 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
         cred.username.toLowerCase().includes(search.toLowerCase())
     );
 
-    async function onAddCredential(values: z.infer<typeof credentialSchema>) {
+    // Reset form when dialog opens/closes
+    const handleOpenChange = (open: boolean) => {
+        setIsDialogOpen(open);
+        if (!open) {
+            setEditingCredential(null);
+            form.reset({
+                title: "",
+                username: "",
+                password: "",
+                url: "",
+                description: "",
+            });
+        }
+    };
+
+    const navToEdit = (cred: Credential) => {
+        setEditingCredential(cred);
+        form.reset({
+            title: cred.title,
+            username: cred.username,
+            password: cred.password || "",
+            url: cred.url || "",
+            description: cred.description || "",
+        });
+        setIsDialogOpen(true);
+    };
+
+    async function onSubmit(values: z.infer<typeof credentialSchema>) {
         if (!masterPassword) return;
 
-        const newCred: Credential = {
-            id: uuidv4(),
-            ...values,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            tags: [],
-        };
+        let newCredentials = [...credentials];
 
-        const newCredentials = [...credentials, newCred];
+        if (editingCredential) {
+            // Update existing
+            newCredentials = newCredentials.map((cred) =>
+                cred.id === editingCredential.id
+                    ? { ...cred, ...values, updatedAt: new Date().toISOString() }
+                    : cred
+            );
+        } else {
+            // Create new
+            const newCred: Credential = {
+                id: uuidv4(),
+                ...values,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                tags: [],
+            };
+            newCredentials.push(newCred);
+        }
 
         try {
             const result = await saveCredentials(masterPassword, newCredentials);
             if (result.success) {
                 setCredentials(newCredentials);
-                toast.success("Credential saved.");
-                setIsAddOpen(false);
-                form.reset();
+                toast.success(editingCredential ? "Credential updated." : "Credential saved.");
+                handleOpenChange(false);
             } else {
                 toast.error(result.error || "Failed to save.");
+            }
+        } catch (error) {
+            toast.error("An error occurred.");
+        }
+    }
+
+    async function onDelete(id: string) {
+        if (!masterPassword || !confirm("Are you sure you want to delete this credential?")) return;
+
+        const newCredentials = credentials.filter((c) => c.id !== id);
+
+        try {
+            const result = await saveCredentials(masterPassword, newCredentials);
+            if (result.success) {
+                setCredentials(newCredentials);
+                toast.success("Credential deleted.");
+            } else {
+                toast.error(result.error || "Failed to delete.");
             }
         } catch (error) {
             toast.error("An error occurred.");
@@ -124,7 +180,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
                         <DialogTrigger asChild>
                             <Button>
                                 <Plus className="mr-2 h-4 w-4" /> Add Credential
@@ -132,13 +188,13 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
-                                <DialogTitle>Add Credential</DialogTitle>
+                                <DialogTitle>{editingCredential ? "Edit Credential" : "Add Credential"}</DialogTitle>
                                 <DialogDescription>
-                                    Store a new password securely in your vault.
+                                    {editingCredential ? "Update your secure credential." : "Store a new password securely in your vault."}
                                 </DialogDescription>
                             </DialogHeader>
                             <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onAddCredential)} className="space-y-4">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                                     <FormField
                                         control={form.control}
                                         name="title"
@@ -205,7 +261,7 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                                         )}
                                     />
                                     <DialogFooter>
-                                        <Button type="submit">Save Credential</Button>
+                                        <Button type="submit">{editingCredential ? "Update" : "Save"} Credential</Button>
                                     </DialogFooter>
                                 </form>
                             </Form>
@@ -216,24 +272,46 @@ export function Dashboard({ credentials: initialCredentials, onLock, masterPassw
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {filteredCredentials.map((cred) => (
                         <div key={cred.id} className="group relative rounded-lg border bg-white p-6 shadow-sm transition-all hover:shadow-md">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h3 className="font-semibold">{cred.title}</h3>
+                            <div className="flex items-start justify-between mb-4">
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold text-lg leading-none">{cred.title}</h3>
                                     <p className="text-sm text-gray-500">{cred.username}</p>
                                 </div>
+                            </div>
+
+                            {cred.description && (
+                                <p className="mb-4 text-xs text-gray-400 line-clamp-2">{cred.description}</p>
+                            )}
+
+                            <div className="flex items-center justify-end gap-2 border-t pt-4 mt-auto">
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="h-8 w-8 text-gray-500 hover:text-gray-900"
                                     onClick={() => copyToClipboard(cred.password || "")}
+                                    title="Copy Password"
                                 >
                                     <Copy className="h-4 w-4" />
-                                    <span className="sr-only">Copy Password</span>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                    onClick={() => navToEdit(cred)}
+                                    title="Edit"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => onDelete(cred.id)}
+                                    title="Delete"
+                                >
+                                    <Trash2 className="h-4 w-4" />
                                 </Button>
                             </div>
-                            {cred.description && (
-                                <p className="mt-2 text-xs text-gray-400 line-clamp-2">{cred.description}</p>
-                            )}
                         </div>
                     ))}
                     {filteredCredentials.length === 0 && (

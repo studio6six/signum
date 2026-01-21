@@ -43,5 +43,5 @@ export function VaultManager({ isInitialized: initialIsInitialized }: VaultManag
         return <LockScreen onUnlock={handleUnlock} />;
     }
 
-    return <Dashboard credentials={credentials} onLock={handleLock} />;
+    return <Dashboard credentials={credentials} onLock={handleLock} masterPassword={masterPassword} />;
 }
