@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Credential } from "@/lib/types";
+import { Credential, Category } from "@/lib/types";
 import { SetupView } from "./SetupView";
 import { LockScreen } from "./LockScreen";
 import { Dashboard } from "./Dashboard";
@@ -15,6 +15,7 @@ export function VaultManager({ isInitialized: initialIsInitialized }: VaultManag
     // 'locked' | 'unlocked'
     const [state, setState] = useState<"locked" | "unlocked">("locked");
     const [credentials, setCredentials] = useState<Credential[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     // We keep the password in memory to re-encrypt when saving changes
     const [masterPassword, setMasterPassword] = useState<string | null>(null);
 
@@ -23,14 +24,16 @@ export function VaultManager({ isInitialized: initialIsInitialized }: VaultManag
         setState("locked"); // Force them to login right after setup to confirm password
     };
 
-    const handleUnlock = (creds: Credential[], password: string) => {
+    const handleUnlock = (creds: Credential[], cats: Category[], password: string) => {
         setCredentials(creds);
+        setCategories(cats);
         setMasterPassword(password);
         setState("unlocked");
     };
 
     const handleLock = () => {
         setCredentials([]);
+        setCategories([]);
         setMasterPassword(null);
         setState("locked");
     };
@@ -43,5 +46,12 @@ export function VaultManager({ isInitialized: initialIsInitialized }: VaultManag
         return <LockScreen onUnlock={handleUnlock} />;
     }
 
-    return <Dashboard credentials={credentials} onLock={handleLock} masterPassword={masterPassword} />;
+    return (
+        <Dashboard
+            credentials={credentials}
+            categories={categories}
+            onLock={handleLock}
+            masterPassword={masterPassword}
+        />
+    );
 }
