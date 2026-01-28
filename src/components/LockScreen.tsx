@@ -8,7 +8,7 @@ import { Loader2, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
 
 import { unlockVault } from "@/app/actions";
-import { Credential } from "@/lib/types";
+import { Credential, Category } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -34,7 +34,7 @@ const formSchema = z.object({
 });
 
 interface LockScreenProps {
-    onUnlock: (credentials: Credential[], key: string) => void;
+    onUnlock: (credentials: Credential[], categories: Category[], key: string) => void;
 }
 
 export function LockScreen({ onUnlock }: LockScreenProps) {
@@ -54,7 +54,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
             if (result.success) {
                 toast.success("Vault unlocked.");
                 // We pass the password back up so the dashboard can use it for re-encryption/saving
-                onUnlock(result.credentials, values.password);
+                onUnlock(result.credentials, result.categories || [], values.password);
             } else {
                 toast.error(result.error || "Invalid password.");
                 form.setValue("password", "");
@@ -91,6 +91,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
                                                 placeholder="Master Password"
                                                 className="text-center"
                                                 autoFocus
+                                                autoComplete="off"
                                                 {...field}
                                             />
                                         </FormControl>

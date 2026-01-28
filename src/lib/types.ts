@@ -1,3 +1,9 @@
+export interface Category {
+    id: string;
+    name: string;
+    icon?: string;
+}
+
 export interface Credential {
     id: string;
     title: string;
@@ -7,6 +13,7 @@ export interface Credential {
     notes?: string;
     tokens?: string;
     tags?: string[];
+    categoryId?: string; // Foreign Key to Category
     createdAt: string;
     updatedAt: string;
     description?: string;

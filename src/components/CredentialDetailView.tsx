@@ -1,21 +1,24 @@
 "use client";
 
 import Draggable from "react-draggable";
-import { X, Copy, Calendar, Tag } from "lucide-react";
+import { Copy, X, Calendar, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 import { Credential } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 interface CredentialDetailViewProps {
     credential: Credential;
     onClose: () => void;
+    onEdit: (credential: Credential) => void;
+    onDelete: (id: string) => void;
 }
 
-export function CredentialDetailView({ credential, onClose }: CredentialDetailViewProps) {
+export function CredentialDetailView({ credential, onClose, onEdit, onDelete }: CredentialDetailViewProps) {
     const nodeRef = useRef(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -31,14 +34,34 @@ export function CredentialDetailView({ credential, onClose }: CredentialDetailVi
                             <CardTitle className="text-lg font-semibold leading-none tracking-tight">
                                 {credential.title}
                             </CardTitle>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={onClose}
-                                className="h-4 w-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-1">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onEdit(credential)}
+                                    title="Edit"
+                                    className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onDelete(credential.id)}
+                                    title="Delete"
+                                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={onClose}
+                                    className="h-8 w-8 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                         <p className="text-sm text-muted-foreground">
                             {credential.username}
@@ -51,15 +74,29 @@ export function CredentialDetailView({ credential, onClose }: CredentialDetailVi
                                 Password
                             </label>
                             <div className="flex items-center justify-between rounded-md border bg-transparent px-3 py-1 shadow-sm">
-                                <code className="text-sm">•••••••••••••••</code>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                    onClick={() => copyToClipboard(credential.password || "", "Password")}
-                                >
-                                    <Copy className="h-3 w-3" />
-                                </Button>
+                                <code className="text-sm font-semibold truncate mr-2">
+                                    {showPassword ? credential.password : "•••••••••••••••"}
+                                </code>
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        title={showPassword ? "Hide Password" : "Show Password"}
+                                    >
+                                        {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                        onClick={() => copyToClipboard(credential.password || "", "Password")}
+                                        title="Copy Password"
+                                    >
+                                        <Copy className="h-3 w-3" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
 

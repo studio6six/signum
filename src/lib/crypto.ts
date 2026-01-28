@@ -69,7 +69,7 @@ export async function verifyPassword(password: string, vault: VaultData): Promis
 /**
  * Encrypts the credentials array into a VaultData object.
  */
-export async function encryptVault(credentials: Credential[], password: string): Promise<VaultData> {
+export async function encryptVault(data: any, password: string): Promise<VaultData> {
     const salt = randomBytes(SALT_LENGTH);
     const saltHex = salt.toString("hex");
 
@@ -83,7 +83,7 @@ export async function encryptVault(credentials: Credential[], password: string):
     const iv = randomBytes(IV_LENGTH);
     const cipher = createCipheriv(ALGORITHM, key, iv);
 
-    const dataString = JSON.stringify(credentials);
+    const dataString = JSON.stringify(data);
     let encrypted = cipher.update(dataString, "utf8", "hex");
     encrypted += cipher.final("hex");
     const tag = cipher.getAuthTag().toString("hex");
@@ -104,7 +104,7 @@ export async function encryptVault(credentials: Credential[], password: string):
 /**
  * Decrypts the vault using the provided Key (derived from verifyPassword).
  */
-export function decryptVault(vault: VaultData, key: Buffer): Credential[] {
+export function decryptVault(vault: VaultData, key: Buffer): any {
     const iv = Buffer.from(vault.iv, "hex");
     const tag = Buffer.from(vault.tag, "hex");
     const encryptedText = vault.encryptedData;
